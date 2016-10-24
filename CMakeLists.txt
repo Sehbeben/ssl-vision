@@ -86,7 +86,7 @@ set (SRCS
 	src/app/plugins/plugin_visualize.cpp
 	src/app/plugins/plugin_dvr.cpp
 	src/app/plugins/visionplugin.cpp
-
+	src/app/plugins/GPUStack/GPUSupport.cpp
 
 	src/app/stacks/multistack_robocup_ssl.cpp
 	src/app/stacks/multivisionstack.cpp
