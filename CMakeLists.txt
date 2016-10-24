@@ -14,6 +14,8 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 find_package(OpenGL REQUIRED)
 find_package(Qt4 4.8.0 COMPONENTS QtCore QtGui QtOpenGL QtNetwork REQUIRED)
 find_package(Threads REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(X11 REQUIRED)
 
 find_package(Protobuf REQUIRED)
 if(EXISTS ${PROTOBUF_PROTOC_EXECUTABLE})
@@ -30,6 +32,7 @@ include_directories(
 	${PROJECT_BINARY_DIR}
 	${Eigen3_INCLUDE_DIRS}
 	${PROTOBUF_INCLUDE_DIRS}
+	${GLEW_INCLUDE_DIRS}
 )
 
 include ( ${QT_USE_FILE} )
@@ -83,6 +86,7 @@ set (SRCS
 	src/app/plugins/plugin_visualize.cpp
 	src/app/plugins/plugin_dvr.cpp
 	src/app/plugins/visionplugin.cpp
+
 
 	src/app/stacks/multistack_robocup_ssl.cpp
 	src/app/stacks/multivisionstack.cpp
@@ -183,6 +187,8 @@ set (libs ${QT_LIBRARIES}
 	${PROTOBUF_LIBRARIES}
 	${DC1394_LIBRARIES}
 	${mvIMPACT_LIBRARIES}
+	${GLEW_LIBRARIES}
+	${X11_LIBRARIES}
 	sslvision
 )
 
