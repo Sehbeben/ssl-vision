@@ -87,6 +87,7 @@ set (SRCS
 	src/app/plugins/plugin_dvr.cpp
 	src/app/plugins/visionplugin.cpp
 	src/app/plugins/GPUStack/GPUSupport.cpp
+	src/app/plugins/GPUStack/gpu_plugin_shadowremoval.cpp
 
 	src/app/stacks/multistack_robocup_ssl.cpp
 	src/app/stacks/multivisionstack.cpp
@@ -112,6 +113,7 @@ qt4_wrap_cpp (MOC_SRCS
 	src/app/plugins/visionplugin.h
 	
 	src/app/stacks/multistack_robocup_ssl.h
+	
 )
 
 qt4_wrap_ui (UI_SRCS
@@ -193,7 +195,7 @@ set (libs ${QT_LIBRARIES}
 )
 
 ## build the main app
-set (target vision)
+set (target vision)	
 add_executable(${target} ${UI_SRCS} ${MOC_SRCS} ${RC_SRCS} ${SRCS})
 target_link_libraries(${target} ${libs})
 
