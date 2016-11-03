@@ -100,6 +100,8 @@ set (SRCS
 	src/app/plugins/visionplugin.cpp
 	src/app/plugins/GPUStack/GPUSupport.cpp
 	src/app/plugins/GPUStack/gpu_plugin_shadowremoval.cpp
+	src/app/plugins/GPUStack/gpu_plugin_colorthreshold.cpp
+	src/app/plugins/GPUStack/shaderHandler.cpp
 
 	src/app/stacks/multistack_robocup_ssl.cpp
 	src/app/stacks/multivisionstack.cpp

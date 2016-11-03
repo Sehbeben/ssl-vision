@@ -13,54 +13,55 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 //========================================================================
 /*!
-  \file    gpu_plugin_shadowremoval.cpp
-  \brief   C++ Implementation: plugin_visualize
+  \file    gpu_plugin_colorsthreshold.cpp
+  \brief   C++ Implementation: plugin_visualize1
   \author  Florian Lehmann, 2016
 */
 //========================================================================
 
 #include <iostream>
 
-#include "GPUStack/gpu_plugin_shadowremoval.h"
+#include "GPUStack/gpu_plugin_colorthreshold.h"
 #include "GPUSupport.h"
 
-
-
-
-PluginShadowRemoval::PluginShadowRemoval(FrameBuffer* fb) : VisionPlugin(fb), counter(0){
-//TODO
-/* Intitialize GPU functions
- * set up 3D world with rectangle and orthogonal camera
- * load and compile shaders
- * set up image texture
- * 
- * 
- * 
- * 
- * 
- */
- gpu = new GPUSupport();
- //glClearColor(1.0,1.0,1.0,1.0); 
+GPUPluginColorThreshold::GPUPluginColorThreshold(FrameBuffer* fb) : VisionPlugin(fb){
+  gpu = new GPUSupport();
+  
 };
 
-
-
-ProcessResult PluginShadowRemoval::process(FrameData* data, RenderOptions* options)
+ProcessResult GPUPluginColorThreshold::process(FrameData* data, RenderOptions* options)
 {
   gpu->render(data);
-  return ProcessingOk;
+return ProcessingOk;
 }
 
-void PluginShadowRemoval::postProcess(FrameData * data, RenderOptions * options)
+void GPUPluginColorThreshold::postProcess(FrameData* data, RenderOptions* options)
 {
-  
-  //gpu->render(data);
 }
 
-VarList * PluginShadowRemoval::getSettings() {
-  return 0;
-}
 
-string PluginShadowRemoval::getName() {
-  return "TestPlugin";
-}
+
+
+
+//#include "GPUSupport.h"
+
+// GPU
+// 
+// ProcessResult GPUPluginColorThreshold::process(FrameData* data, RenderOptions* options)
+// {
+//   
+//   
+//  return ProcessingOk; 
+// }
+// // GPUPluginColorThreshold::GPUPluginColorThreshold(FrameBuffer* _buffer): VisionPlugin(buffer){
+// //   
+// //   
+// // }
+// 
+// string GPUPluginColorThreshold::getName()
+// {
+//   return "GPUSegmentation";
+// }
+
+
+

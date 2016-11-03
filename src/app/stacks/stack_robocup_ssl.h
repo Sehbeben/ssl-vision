@@ -27,6 +27,7 @@
 #include "field.h"
 #include "plugin_dvr.h"
 #include "GPUStack/gpu_plugin_shadowremoval.h"
+#include "GPUStack/gpu_plugin_colorthreshold.h"
 #include "plugin_colorcalib.h"
 #include "plugin_cameracalib.h"
 #include "plugin_visualize.h"

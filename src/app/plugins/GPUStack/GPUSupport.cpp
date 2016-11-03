@@ -20,6 +20,7 @@
 //========================================================================
 
 #include "GPUSupport.h"
+#include "shaderHandler.h"
 
 
 #include <vector>
@@ -28,130 +29,46 @@
 #include <iostream>
 
 
-
 using namespace std;
 
-static const char* vertexShader = {
-	"#version 330 core												\n"
-	"layout(location = 0) in vec3 vertexPosition_modelspace;		\n"
-	"layout(location = 1) in vec2 vertexUV;							\n"
-	"out vec2 UV;													\n"
-	"uniform mat4 MVP;												\n"
-	"																\n"
-	"void main(){													\n"
-	"	//gl_Position = vec4(vertexPosition_modelspace,1);			\n"
-	"																\n"
-	" 	gl_Position = MVP * vec4(vertexPosition_modelspace,1);		\n"
-	" 	UV = vertexUV;												\n"
-	"}																\n"
-};
 
-static const char* fragmentShader = {
-  "#version 330 core						  \n"
-  "//in vec3 fragmentColor;					  \n"
-  "in vec2 UV;							  \n"
-  "out vec3 color;						  \n"
-  "								  \n"
-  "uniform sampler2D textureSampler;				  \n"
-  "uniform sampler2D mapSampler;				  \n"
-  "uniform int imagewidth;					  \n"
-  "uniform int imageheight;					  \n"
-  "								  \n"
-  "								  \n"
-  "void main(void)						  \n"
-  "{								  \n"
-  "  vec2 mapPosition = gl_FragCoord.xy;														\n"
-  "  mapPosition.x = mapPosition.x / float(imagewidth);											\n"
-  "  mapPosition.y = mapPosition.y / float(imageheight);											\n"
-  "																							\n"
-  "  float a = texture2D(mapSampler, mapPosition).x;										\n"
-  "  float b = texture2D(mapSampler, mapPosition).y;										\n"
-  "  float c = texture2D(mapSampler, mapPosition).z;              \n"
-  "	//color = vec3(0.1f,0.5f,0.0f);				  \n"
-  "								  \n"
-  "	color = texture2D(textureSampler, UV).rgb;		  \n"
-  "	//color = vec3(1.0f,0.0f,0.5f);							  \n"
-  "	if ((gl_FragCoord.x < 10)||(gl_FragCoord.x > imagewidth-10)) color = vec3(0.9f,0.0f,0.0f);							  \n"
-  
-  "								  \n"
-  "}								  \n"
-};
-
-GLuint LoadShader() {
-	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	string vertex_shader_source = vertexShader;
-	char const* sourcePointer = vertex_shader_source.c_str();
-	glShaderSource(vertexShaderID, 1, &sourcePointer, NULL);
-	glCompileShader(vertexShaderID);
-	
-	GLint status;
-	glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &status);
-	if (status != GL_TRUE) {
-		char buffer[512];
-		glGetShaderInfoLog(vertexShaderID, 512, NULL, buffer);
-		std::cout << buffer << std::endl;
-	}
-	else cout << "Vertexshader successfully compiled!\n";
-
-	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-	string fragment_shader_source = fragmentShader;
-	sourcePointer = fragment_shader_source.c_str();
-	glShaderSource(fragmentShaderID, 1, &sourcePointer, NULL);
-	glCompileShader(fragmentShaderID);
-	
-	glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &status);
-	if (status != GL_TRUE){
-		char buffer[512];
-		glGetShaderInfoLog(fragmentShaderID, 512, NULL, buffer);
-		cout << buffer << endl;
-	}
-	else cout << "Fragmentshader successfully compiled!\n";
-	
-
-	GLuint programID = LinkProgram(vertexShaderID, fragmentShaderID);
-
-	return programID;
-}
-
-
-GLuint LinkProgram(GLuint vertexShaderID, GLuint fragmentShaderID)
-{
-	int infoLogLength;
-	GLint result = GL_FALSE;
-	GLuint programID = glCreateProgram();
-	glAttachShader(programID, vertexShaderID);
-	glAttachShader(programID, fragmentShaderID);
-	glLinkProgram(programID);
-
-	//Check program
-	glGetProgramiv(programID, GL_LINK_STATUS, &result);
-	glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
-	if (infoLogLength>0)
-	{
-		std::vector<char> ProgramErrorMessage(infoLogLength+1);
-		glGetProgramInfoLog(programID, infoLogLength, NULL, &ProgramErrorMessage[0]);
-		printf("%s\n", &ProgramErrorMessage[0]);
-		//std::cout<<"Fehler beim Linken aufgetreten\n"<<"Log-Laenge: "<<infoLogLength;
-	}
-	glDetachShader(programID, vertexShaderID);
-	glDetachShader(programID, fragmentShaderID);
-
-	glDeleteShader(vertexShaderID);
-	glDeleteShader(fragmentShaderID);
-
-	return programID;
-}
 
 GPUSupport::GPUSupport() : currentWidth(0), currentHeight(0)
 {
   
-       
+  createOpenGLContext();
+  
+  glXMakeCurrent(dpy, root, glc);
+  glewInit();  
+    
+  //Initialize glew
+  configureOpenGL();
+  build3DSpace();
+  setupShader();
 
+
+  glGenTextures(1, &lutTexture);
+  glGenTextures(1, &mapTexture);
+  glGenTextures(1, &imageTexture);
+  
+  glGenFramebuffers(1, &fb);
+
+  //input texture
+ // glBindTexture(GL_TEXTURE_2D, targetTexture);
+ // glGenTextures(1, &targetTexture);
+}
+
+GPUSupport::~GPUSupport()
+{
+
+}
+
+void GPUSupport::createOpenGLContext()
+{
   GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
   XVisualInfo *vi;
-
-  
-   dpy = XOpenDisplay(0);
+ 
+  dpy = XOpenDisplay(0);
   if(!dpy) {
  	//printf("\n\tcannot connect to X server\n\n");
     }
@@ -159,26 +76,20 @@ GPUSupport::GPUSupport() : currentWidth(0), currentHeight(0)
   vi = glXChooseVisual(dpy, 0, att);
   
   glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
-  glXMakeCurrent(dpy, root, glc); 
-  
-  //intitialize GLEW and Context
-  //Initialize glew
-  glewInit();
-  glClearColor(0.0, 0.0, 0.0, 0.0);
-  //std::cout<<glGetString(GL_VERSION);
+}
 
-//set storage alignment in memory
+void GPUSupport::configureOpenGL()
+{
+  //set storage alignment in memory
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  //std::cout<<glGetString(GL_VERSION);  
   //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+}
 
 
-  glGenTextures(1, &mapTexture);
-  glGenTextures(1, &imageTexture);				//input texture
-
-  
-
-  //os::SMatrix<float, 4, 4> mvp = ortho_projection * view;
-
+void GPUSupport::build3DSpace()
+{
   //define Quad
   static const GLfloat g_vertex_buffer_data[] = {
 	  -1.0f, -1.0f, -1.0f,
@@ -197,11 +108,7 @@ GPUSupport::GPUSupport() : currentWidth(0), currentHeight(0)
 	  1.0f, 1.0f,
 	  0.0f, 0.0f
   };
-
-  float mvp[16] = { 1.0f, 0, 0, 0,
-		    0,-1, 0, 0,
-		    0, 0,-1, 0,
-		    0, 0,-2, 1};
+  
   //create quad
   GLuint vertexBuffer, uvBuffer;
   glGenBuffers(1, &vertexBuffer);
@@ -220,27 +127,36 @@ GPUSupport::GPUSupport() : currentWidth(0), currentHeight(0)
   glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+}
+
+
+void GPUSupport::setupShader()
+{
+  float mvp[16] = { 1.0f, 0, 0, 0,
+		    0,-1, 0, 0,
+		    0, 0,-1, 0,
+		    0, 0,-2, 1};
+
+
   //create shader program
-  mappingshader = LoadShader();
+  mappingshader = ShaderHandler::createShaderProgram("../src/app/plugins/GPUStack/vertex.vsh", "../src/app/plugins/GPUStack/fragment.fsh");
   glUseProgram(mappingshader);
   GLuint matrixID = glGetUniformLocation(mappingshader, "MVP");
   glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvp[0]);  
   
- // glBindTexture(GL_TEXTURE_2D, targetTexture);
- // glGenTextures(1, &targetTexture);
 }
 
-GPUSupport::~GPUSupport()
-{
 
-}
+
+
+
 
 void GPUSupport::initializeGPUFunction(int width, int height)
 {
-  std::cout<<"Test\n";
+  //std::cout<<"Test\n";
   
   glXMakeCurrent(dpy, root, glc); 
-    glewInit();
+    //glewInit();
 	glGenTextures(1, &targetTexture);
   	//RGBA8 2D texture, 24 bit depth texture, 256x256
 	glBindTexture(GL_TEXTURE_2D, targetTexture);
@@ -253,11 +169,12 @@ void GPUSupport::initializeGPUFunction(int width, int height)
 	//NULL means reserve texture memory, but texels are undefined
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 	//-------------------------
-	glGenFramebuffers(1, &fb);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, fb);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) cout << "INCOMPLETE";
 	//Attach 2D texture to this FBO
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTexture, 0);
-
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) cout << "INCOMPLETE";
 
 
 	glViewport(0, 0, width, height);
@@ -303,14 +220,8 @@ void GPUSupport::render(FrameData* data)
   glUniform1i(textureID, 0);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
-  int position=0;
-  for(int i=0; i<width; i++){
-    for(int j=0; j<height; j++){
-	position=(3*i+j*3*width);
-	//data->video.getData()[position]=0;
-	//data->video.getData()[position+1]=0;
-    }
-  }
+
+
     
   
   glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data->video.getData());

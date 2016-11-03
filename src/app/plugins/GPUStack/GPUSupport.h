@@ -23,11 +23,6 @@
 #include <GL/glxew.h>
 #include <framedata.h>
 
-
-GLuint LoadShader();
-GLuint LinkProgram(GLuint, GLuint);
-
-
 class GPUSupport {
 public:
   GPUSupport();
@@ -35,17 +30,26 @@ public:
   void render(FrameData *data);
   
 private:
-    Display *dpy;
+  //OpenGLContext
+  Display *dpy;
   Window root;
-    GLXContext glc;
+  GLXContext glc;
   
-   GLuint mapTexture, imageTexture, fb, targetTexture;
+  //memorybuffer on GPU
+  GLuint lutTexture, imageTexture;
+  GLuint mapTexture, fb, targetTexture;
   
+  //current shader
   GLuint mappingshader;
   
+  //
   int currentWidth, currentHeight;
 
 
+  void createOpenGLContext();
+  void configureOpenGL();
+  void build3DSpace();
+  void setupShader();
   
   void initializeGPUFunction(int width, int height);
   
