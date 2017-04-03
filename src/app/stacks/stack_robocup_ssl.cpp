@@ -55,6 +55,7 @@ StackRoboCupSSL::StackRoboCupSSL(
   stack.push_back(new PluginDVR(_fb));
   stack.push_back(new PluginShadowRemoval(_fb));
   stack.push_back(new GPUPluginColorThreshold(_fb));
+  stack.push_back(new PluginBrightnessCompensation(_fb));
 
   stack.push_back(new PluginColorCalibration(_fb,lut_yuv, LUTChannelMode_Numeric));
 #ifdef OPENCV

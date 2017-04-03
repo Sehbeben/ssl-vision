@@ -102,14 +102,15 @@ set (SRCS
 	src/app/plugins/GPUStack/gpu_plugin_shadowremoval.cpp
 	src/app/plugins/GPUStack/gpu_plugin_colorthreshold.cpp
 	src/app/plugins/GPUStack/shaderHandler.cpp
-
-	src/app/stacks/multistack_robocup_ssl.cpp
-	src/app/stacks/multivisionstack.cpp
+	src/app/plugins/plugin_brightnesscompensation.cpp
+	src/app/plugins/plugin_brightnesscompensation.h
+    src/app/stacks/multistack_robocup_ssl.cpp
+    src/app/stacks/multivisionstack.cpp
 	src/app/stacks/stack_robocup_ssl.cpp
 	src/app/stacks/visionstack.cpp
 
 	${OPTIONAL_SRCS}
-)
+		)
 
 qt4_wrap_cpp (MOC_SRCS
 	src/app/capture_thread.h
