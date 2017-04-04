@@ -21,7 +21,24 @@
 #ifndef PLUGIN_BRIGHTNESSCOMPENSATION_H
 #define PLUGIN_BRIGHTNESSCOMPENSATION_H
 
+
+
 #include <visionplugin.h>
+
+#include <QWidget>
+
+class PluginBrightnessCompensation;
+
+class PluginBrightnessCompensationWidget : public QWidget
+{
+public:
+    PluginBrightnessCompensationWidget(PluginBrightnessCompensation * pbc, QWidget * parent = 0, Qt::WindowFlags f = 0);
+
+    QVBoxLayout * layout_main;
+private:
+
+};
+
 
 class PluginBrightnessCompensation : public VisionPlugin {
 public:
@@ -32,7 +49,10 @@ public:
     //virtual VarList * getSettings();
 
     virtual string getName();
-private:
+
+    virtual QWidget * getControlWidget();
+protected:
+    PluginBrightnessCompensationWidget * widget;
 
 };
 

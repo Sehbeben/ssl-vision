@@ -22,8 +22,17 @@
 
 #include "plugin_brightnesscompensation.h"
 
-PluginBrightnessCompensation::PluginBrightnessCompensation(FrameBuffer* fb) :  VisionPlugin(fb){
+PluginBrightnessCompensationWidget::PluginBrightnessCompensationWidget(PluginBrightnessCompensation *pbc,
+                                                                       QWidget *parent, Qt::WindowFlags f) {
+    layout_main = new QVBoxLayout();
 
+    this->setLayout(layout_main);
+}
+
+
+
+PluginBrightnessCompensation::PluginBrightnessCompensation(FrameBuffer* fb) :  VisionPlugin(fb){
+    widget = new PluginBrightnessCompensationWidget(this);
 }
 
 string PluginBrightnessCompensation::getName() {
@@ -33,3 +42,8 @@ string PluginBrightnessCompensation::getName() {
 ProcessResult PluginBrightnessCompensation::process(FrameData *data, RenderOptions *options) {
     return ProcessingOk;
 }
+
+QWidget *PluginBrightnessCompensation::getControlWidget() {
+    return widget;
+}
+
