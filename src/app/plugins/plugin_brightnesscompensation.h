@@ -26,6 +26,7 @@
 #include <visionplugin.h>
 
 #include <QWidget>
+#include <QtGui/QLabel>
 
 class PluginBrightnessCompensation;
 
@@ -34,7 +35,9 @@ class PluginBrightnessCompensationWidget : public QWidget
 public:
     PluginBrightnessCompensationWidget(PluginBrightnessCompensation * pbc, QWidget * parent = 0, Qt::WindowFlags f = 0);
 
-    QVBoxLayout * layout_main;
+    QVBoxLayout* layout_main;
+    QLabel* rgbColorLabel;
+    QLabel* yuvColorLabel;
 private:
 
 };
@@ -43,7 +46,7 @@ private:
 class PluginBrightnessCompensation : public VisionPlugin {
 public:
     PluginBrightnessCompensation(FrameBuffer* fb);
-
+    ~PluginBrightnessCompensation(){};
     virtual ProcessResult process(FrameData * data, RenderOptions * options);
 
     //virtual VarList * getSettings();
@@ -51,8 +54,17 @@ public:
     virtual string getName();
 
     virtual QWidget * getControlWidget();
+
+
+    virtual void mousePressEvent(QMouseEvent* event, pixelloc loc);
+    virtual void mouseReleaseEvent(QMouseEvent* event, pixelloc loc);
 protected:
     PluginBrightnessCompensationWidget * widget;
+
+    void mouseEvent(QMouseEvent* event, pixelloc loc);
+
+private:
+    pixelloc firstPos, secondPos;
 
 };
 
