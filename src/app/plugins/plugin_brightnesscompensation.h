@@ -66,6 +66,8 @@ protected:
 private:
     pixelloc firstPos, secondPos;
 
+    yuv calculateAverageLightning(pixelloc firstPos, pixelloc secondPos);
+
 };
 
 
