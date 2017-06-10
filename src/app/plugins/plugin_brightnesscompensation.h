@@ -35,9 +35,16 @@ class PluginBrightnessCompensationWidget : public QWidget
 public:
     PluginBrightnessCompensationWidget(PluginBrightnessCompensation * pbc, QWidget * parent = 0, Qt::WindowFlags f = 0);
 
-    QVBoxLayout* layout_main;
+
+    QHBoxLayout* layout_main;
+    QVBoxLayout* leftPart;
+    QVBoxLayout* rightPart;
+    QListWidget* list;
+
+    QPushButton* calibrationButton;
     QLabel* rgbColorLabel;
     QLabel* yuvColorLabel;
+    QCheckBox* checkBox;
 private:
 
 };
@@ -65,7 +72,7 @@ protected:
 
 private:
     pixelloc firstPos, secondPos;
-
+    yuv averageColor;
     yuv calculateAverageLightning(pixelloc firstPos, pixelloc secondPos);
 
 };

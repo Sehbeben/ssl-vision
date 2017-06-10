@@ -47,7 +47,7 @@ PluginShadowRemoval::PluginShadowRemoval(FrameBuffer* fb) : VisionPlugin(fb), co
 
 ProcessResult PluginShadowRemoval::process(FrameData* data, RenderOptions* options)
 {
-  gpu->render(data);
+  //gpu->render(data);
   return ProcessingOk;
 }
 

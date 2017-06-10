@@ -31,7 +31,7 @@ GPUPluginColorThreshold::GPUPluginColorThreshold(FrameBuffer* fb) : VisionPlugin
 
 ProcessResult GPUPluginColorThreshold::process(FrameData* data, RenderOptions* options)
 {
-  gpu->render(data);
+  //gpu->render(data);
 return ProcessingOk;
 }
 

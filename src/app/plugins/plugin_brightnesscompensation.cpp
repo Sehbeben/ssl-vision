@@ -21,17 +21,84 @@
 
 
 #include <iostream>
+#include <image.h>
 #include "plugin_brightnesscompensation.h"
 
 PluginBrightnessCompensationWidget::PluginBrightnessCompensationWidget(PluginBrightnessCompensation *pbc,
                                                                        QWidget *parent, Qt::WindowFlags f) {
-    layout_main = new QVBoxLayout();
+    layout_main = new QHBoxLayout();
+    leftPart = new QVBoxLayout();
+    rightPart = new QVBoxLayout();
+
+    calibrationButton = new QPushButton("Start Calibration");
+
+
+    leftPart->addWidget(calibrationButton);
+    list = new QListWidget();
+    list->setSizePolicy ( QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+    list->setFocusPolicy(Qt::NoFocus);
+
+
+    QListWidgetItem* item;
+    item = new QListWidgetItem("Blue");
+    QPixmap p(20,20);
+    p.fill(QColor(0,0,255,255));
+    QPainter painter(&p);
+    painter.setPen(QPen(QColor(0, 0, 0), 1));
+    painter.drawRect(0,0,19,19);
+    item->setIcon(p);
+    list->addItem(item);
+
+
+    item = new QListWidgetItem("Yellow");
+    p.fill(QColor(255,255,0,255));
+    painter.setPen(QPen(QColor(0, 0, 0), 1));
+    painter.drawRect(0,0,19,19);
+    item->setIcon(p);
+    list->addItem(item);
+
+    item = new QListWidgetItem("Field");
+    p.fill(QColor(0,80,0,255));
+    painter.setPen(QPen(QColor(0, 0, 0), 1));
+    painter.drawRect(0,0,19,19);
+    item->setIcon(p);
+    list->addItem(item);
+
+    item = new QListWidgetItem("Pink");
+    p.fill(QColor(255,0,255,255));
+    painter.setPen(QPen(QColor(0, 0, 0), 1));
+    painter.drawRect(0,0,19,19);
+    item->setIcon(p);
+    list->addItem(item);
+
+    item = new QListWidgetItem("Green");
+    p.fill(QColor(0,255,0,255));
+    painter.setPen(QPen(QColor(0, 0, 0), 1));
+    painter.drawRect(0,0,19,19);
+    item->setIcon(p);
+    list->addItem(item);
+
+    item = new QListWidgetItem("Orange");
+    p.fill(QColor(255,128,0,255));
+    painter.setPen(QPen(QColor(0, 0, 0), 1));
+    painter.drawRect(0,0,19,19);
+    item->setIcon(p);
+    list->addItem(item);
+
+
+    leftPart->addWidget(list);
+
+
     rgbColorLabel = new QLabel("RGB:");
     yuvColorLabel = new QLabel("YUV:");
+    checkBox = new QCheckBox("Check");
+    checkBox->setCheckState(Qt::Unchecked);
 
-
-    layout_main->addWidget(rgbColorLabel);
-    layout_main->addWidget(yuvColorLabel);
+    rightPart->addWidget(rgbColorLabel);
+    rightPart->addWidget(yuvColorLabel);
+    rightPart->addWidget(checkBox);
+    layout_main->addLayout(leftPart);
+    layout_main->addLayout(rightPart);
     this->setLayout(layout_main);
 }
 
@@ -46,6 +113,21 @@ string PluginBrightnessCompensation::getName() {
 }
 
 ProcessResult PluginBrightnessCompensation::process(FrameData *data, RenderOptions *options) {
+
+    if (widget->checkBox->isChecked()){
+    for(int i = 0; i < data->video.getWidth(); i++)
+    {
+        for(int j=0; j < data->video.getHeight(); j++)
+        {
+            //data->video.getData()[i,j]; //= rgb(i, j, 128);
+            rgbImage img(data->video);
+            yuv color=Conversions::rgb2yuv(img.getPixel(i,j));
+            color.y = averageColor.y;
+
+            img.setPixel(i,j, Conversions::yuv2rgb(color));
+        }
+    }
+    } 
     return ProcessingOk;
 }
 
@@ -74,6 +156,10 @@ void PluginBrightnessCompensation::mouseReleaseEvent(QMouseEvent *event, pixello
             secondPos = loc;
             std::cout<<"secondPos:"<<"\nX: "<< secondPos.x<<"\nY: "<< secondPos.y <<std::endl;
             yuv avgColor = calculateAverageLightning(firstPos, secondPos);
+
+            QString text = QString("YUV: %1, %2, %3").arg(avgColor.u).arg(avgColor.v).arg(avgColor.y);
+            widget->yuvColorLabel->setText(text);
+
             event->accept();
         }
 
@@ -145,20 +231,47 @@ void PluginBrightnessCompensation::mouseEvent(QMouseEvent *event, pixelloc loc) 
 
 yuv PluginBrightnessCompensation::calculateAverageLightning(pixelloc firstPos, pixelloc secondPos)
 {
+    averageColor = yuv(0.0, 0.0, 0.0);
     FrameBuffer * rb= getFrameBuffer();
     if (rb!=0) {
         rb->lockRead();
         int idx=rb->curRead();
         FrameData * frame = rb->getPointer(idx);
+
+        int maxX = (firstPos.x > secondPos.x) ? firstPos.x : secondPos.x;
+        int minX = (firstPos.x < secondPos.x) ? firstPos.x : secondPos.x;
+        int maxY = (firstPos.y > secondPos.y) ? firstPos.y : secondPos.y;
+        int minY = (firstPos.y < secondPos.y) ? firstPos.y : secondPos.y;
+        int width = 1+maxX-minX;
+        int height = 1+maxY-minY;
+        float size = width*height;
+
+        float u=0;
+        float v=0;
+        float y=0;
+        for (int i= minX; i < minX+width; i++)
+        {
+            for(int j= minY; j < minY+height; j++)
+            {
+                rgbImage img(frame->video);
+                yuv color=Conversions::rgb2yuv(img.getPixel(i,j));
+                u += color.u/size;
+                v += color.v/size;
+                y += color.y/size;
+            }
+        }
+        averageColor = yuv((unsigned char) u, (unsigned char) v, (unsigned char) y);
+
+
+        // for(int i = 0; i< )
         if (firstPos.x < frame->video.getWidth() && firstPos.y < frame->video.getHeight() && firstPos.x >=0 && firstPos.y >=0) {
             if (frame->video.getWidth() > 1 && frame->video.getHeight() > 1) {
-               yuv color;
 //                        //if converting entire image then blanking is not needed
-//                        ColorFormat source_format=frame->video.getColorFormat();
-//                        if (source_format==COLOR_RGB8) {
+                ColorFormat source_format=frame->video.getColorFormat();
+                if (source_format==COLOR_RGB8) {
 //                            //plain copy of data
-//                            rgbImage img(frame->video);
-//                            color=Conversions::rgb2yuv(img.getPixel(loc.x,loc.y));
+                    rgbImage img(frame->video);
+                    //color=Conversions::rgb2yuv(img.getPixel(loc.x,loc.y));
 //                        } else if (source_format==COLOR_YUV444) {
 //                            yuvImage img(frame->video);
 //                            color=img.getPixel(loc.x,loc.y);
@@ -188,10 +301,10 @@ yuv PluginBrightnessCompensation::calculateAverageLightning(pixelloc firstPos, p
 //                                    lutw->add_del_Pixel(color, false, continuing_undo);
 //                            }
 //                            continuing_undo = true;
-//                        }
+                        }
             }
         }
         rb->unlockRead();
     }
-
+    return averageColor;
 }
