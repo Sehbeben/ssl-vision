@@ -51,7 +51,8 @@ enum ColorFormat {
   COLOR_RAW8,
   COLOR_RAW16,
   COLOR_RAW32,
-  COLOR_COUNT
+  COLOR_COUNT,
+  COLOR_HSV
 };
 
 //Color Helper Classes:
@@ -84,6 +85,8 @@ public:
       return COLOR_RAW32;
     } else if (strcmp(s,"rgb16")==0) {
       return COLOR_RGB16;
+    } else if (strcmp(s,"hsv")==0){
+        return COLOR_HSV;
     } else {
       return COLOR_UNDEFINED;
     }
@@ -115,6 +118,8 @@ public:
       return ("raw32");
     } else if (f==COLOR_RGB16) {
       return ("rgb16");
+    } else if (f==COLOR_HSV){
+      return ("hsv");
     } else if (f==COLOR_UNDEFINED) {
       return ("undefined");
     } else {
@@ -437,6 +442,42 @@ public:
   };
 };
 
+template <class num, ColorFormat fmt>
+class ColorHSV {
+public:
+//DATA:
+    num h;
+    num s;
+    num v;
+
+//METHODS:
+    ColorHSV() {
+        h=s=v=0;
+    };
+    ColorHSV(const ColorHSV<num, fmt> &c) {
+        h=c.h;
+        s=c.s;
+        v=c.v;
+    };
+    ColorHSV(num _h, num _s, num _v) {
+        h=_h;
+        s=_s;
+        v=_v;
+    };
+    ~ColorHSV() {
+    };
+    static ColorFormat getColorFormat() {
+        return fmt;
+    }
+    bool operator ==(const ColorHSV<num, fmt> &c) const {
+        return (h==c.h && s==c.s && v==c.v);
+    };
+    ColorHSV<num, fmt> operator *(double f) const {
+        ColorHSV<num, fmt> result(h*f,s*f,v*f);
+        return result;
+    };
+};
+
 
 typedef ColorRGB<unsigned char,COLOR_RGB8> rgb;
 typedef ColorRGBA<unsigned char,COLOR_RGBA8> rgba;
@@ -448,7 +489,7 @@ typedef ColorGrey<uint16_t,COLOR_RAW16> raw16;
 typedef ColorGrey<uint32_t,COLOR_RAW32> raw32;
 typedef ColorYUYV<uint8_t,COLOR_YUV422_UYVY> yuyv;
 typedef ColorUYVY<uint8_t,COLOR_YUV422_UYVY> uyvy;
- 
+typedef ColorHSV<unsigned char, COLOR_HSV> hsv;
 
 namespace RGB {
   static const rgb Black = rgb(  0,  0,  0 );

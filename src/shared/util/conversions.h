@@ -26,6 +26,7 @@
 #include "colors.h"
 #ifndef NO_DC1394_CONVERSIONS
   #include <dc1394/conversions.h>
+
 #endif
 
 //#include "ccvt.h"
@@ -94,6 +95,45 @@ inline static yuv rgb2yuv(rgb const &in)
   return (col);
 }
 
+inline static hsv rgb2hsv(rgb const &in) {
+    double rd, gd, bd, h, s, v, max, min, del, rc, gc, bc;
+
+    rd = in.r / 255.0;
+    gd = in.g / 255.0;
+    bd = in.b / 255.0;
+
+
+    min = rd < gd ? rd : gd;
+    min = min < bd ? min : bd;
+
+    max = rd > gd ? rd : gd;
+    max = max > bd ? max : bd;
+    del = max - min;
+    if (del < 0.0){
+        v = 0.0;
+    }
+    else v = max*255.0;
+    if (max != 0.0) s = ((del) / max)*255.0;
+    else s = 0.0;
+
+    h = -1;
+
+    if (s != 0.0);
+    {
+        rc = (max - rd) / del;
+        gc = (max - gd) / del;
+        bc = (max - bd) / del;
+
+        if (rd == max) h = bc - gc;
+        else if (gd == max) h = 2 + rc - bc;
+        else if (bd == max) h = 4 + gc - rc;
+
+        h = h * 60;
+        if (h < 0) h += 360;
+    }
+
+    return hsv(h, s, v);
+}
 
 //DC1394 accelerated:
 static void uyvy2rgb (unsigned char *src, unsigned char *dest, int width, int height);
