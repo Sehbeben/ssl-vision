@@ -91,11 +91,13 @@ PluginBrightnessCompensationWidget::PluginBrightnessCompensationWidget(PluginBri
 
     rgbColorLabel = new QLabel("RGB:");
     yuvColorLabel = new QLabel("YUV:");
+    hsvColorLabel = new QLabel("HSV:");
     checkBox = new QCheckBox("Check");
     checkBox->setCheckState(Qt::Unchecked);
 
     rightPart->addWidget(rgbColorLabel);
     rightPart->addWidget(yuvColorLabel);
+    rightPart->addWidget(hsvColorLabel);
     rightPart->addWidget(checkBox);
     layout_main->addLayout(leftPart);
     layout_main->addLayout(rightPart);
@@ -123,7 +125,6 @@ ProcessResult PluginBrightnessCompensation::process(FrameData *data, RenderOptio
             rgbImage img(data->video);
             yuv color=Conversions::rgb2yuv(img.getPixel(i,j));
             color.y = averageColor.y;
-
             img.setPixel(i,j, Conversions::yuv2rgb(color));
         }
     }
@@ -156,10 +157,14 @@ void PluginBrightnessCompensation::mouseReleaseEvent(QMouseEvent *event, pixello
             secondPos = loc;
             std::cout<<"secondPos:"<<"\nX: "<< secondPos.x<<"\nY: "<< secondPos.y <<std::endl;
             yuv avgColor = calculateAverageLightning(firstPos, secondPos);
-
             QString text = QString("YUV: %1, %2, %3").arg(avgColor.u).arg(avgColor.v).arg(avgColor.y);
             widget->yuvColorLabel->setText(text);
-
+            rgb rgbColor = Conversions::yuv2rgb(avgColor);
+            text = QString("RGB: %1, %2, %3").arg(rgbColor.r).arg(rgbColor.g).arg(rgbColor.b);
+            widget->rgbColorLabel->setText(text);
+            hsv hsvColor = Conversions::rgb2hsv(rgbColor);
+            text = QString("HSV: %1, %2, %3").arg(hsvColor.h).arg(hsvColor.s).arg(hsvColor.v);
+            widget->hsvColorLabel->setText(text);
             event->accept();
         }
 
@@ -260,7 +265,7 @@ yuv PluginBrightnessCompensation::calculateAverageLightning(pixelloc firstPos, p
                 y += color.y/size;
             }
         }
-        averageColor = yuv((unsigned char) u, (unsigned char) v, (unsigned char) y);
+        averageColor = yuv((unsigned char) y, (unsigned char) u, (unsigned char) v);
 
 
         // for(int i = 0; i< )

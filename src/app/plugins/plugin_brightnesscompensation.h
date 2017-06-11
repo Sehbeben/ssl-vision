@@ -44,6 +44,7 @@ public:
     QPushButton* calibrationButton;
     QLabel* rgbColorLabel;
     QLabel* yuvColorLabel;
+    QLabel* hsvColorLabel;
     QCheckBox* checkBox;
 private:
 
